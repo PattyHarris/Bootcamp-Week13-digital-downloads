@@ -22,7 +22,7 @@ export default function Setup() {
       onSubmit={async (e) => {
         e.preventDefault();
 
-        await fetch("/api/setup", {
+        let response = await fetch("/api/setup", {
           body: JSON.stringify({
             name,
           }),
@@ -31,6 +31,8 @@ export default function Setup() {
           },
           method: "POST",
         });
+
+        console.log("Name: " + session.user.name);
 
         session.user.name = name;
         router.push("/dashboard");
