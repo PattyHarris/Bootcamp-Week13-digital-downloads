@@ -47,3 +47,10 @@ npm install aws-sdk
 ```
 
 5. And finally create the 'api/new.js' file to handle the new product endpoint. Item to node is that the price is multiplied by 100 to avoid rounding errors.
+6. Forgot to mention that the UI for creating a new product is pretty bad - the product image and product links for uploading them are not really clear. They represent the product image and product where a product is assumed to be some sort of text in electronic form, such as in Gumroad.
+
+## Show Products on the Dashboard
+
+1. As with previous projects, create 'lib/data.js' to handle the interactions with the database. The first method will be 'getProducts' to return a list of product.
+2. 'getProducts' is called in 'getServerSideProps' in 'dashboard/index.js'.
+3.
