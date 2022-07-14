@@ -53,4 +53,27 @@ npm install aws-sdk
 
 1. As with previous projects, create 'lib/data.js' to handle the interactions with the database. The first method will be 'getProducts' to return a list of product.
 2. 'getProducts' is called in 'getServerSideProps' in 'dashboard/index.js'.
-3.
+
+## Handle Edit Product
+
+1. Allow the user to edit a product. Setup the edit product page at 'dashboard/product/[...id].js'. Note that this is a good bit of code for setting up a default page:
+
+```
+export default function Product() {
+
+  return (
+    <div>
+
+    </div>
+  )
+}
+
+export async function getServerSideProps(context) {
+
+}
+```
+
+3. Add 'getProduct' to 'data.js'. As before, this will be called in 'getServerSideProps'.
+4. Pass 'product' as a prop to 'Product'.
+5. Check the session and setup as usual. As in the last tutorial, 'next' has been updated such that in the code where we redirect to '/setup', we also need to return a null page (whereas before, we just continued on).
+6. The endpoint handler is 'api/edit'.
