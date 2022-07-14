@@ -85,3 +85,9 @@ export async function getServerSideProps(context) {
 3. Add the link to 'pages/dashboard/index.js'.
 4. Create the file 'pages/product/[id].js' for the new 'View' page. In this page we link to '/profile/<USER ID>' - so we also need to create the page '/pages/profile/[id].js'. This page shows the list of products sold by this user.
 5. The new profile page needs 'getUser' - add that to data.js. We could also refactor how products are returned in the Profile page - since getUser returns the list of products, getServerSideProps doesn't really need to call 'getProducts'. Then, when iterating over the products, you would use 'user.products' and 'user.products.map...'. Remove 'products' from the props returned from 'getServerSideProps' and as input into Profile....
+
+## Showcase Authors and Products
+
+1. We will currently show the 'top' 3 items from the database. Once we put 'sales' in place, we will show the top 3 items sold.
+2. In 'index.js', we show the products as we did on the 'profile' page.
+3. Refactor 'getProducts' to accept a 'take' option.
