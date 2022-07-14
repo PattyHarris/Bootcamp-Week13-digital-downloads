@@ -77,3 +77,11 @@ export async function getServerSideProps(context) {
 4. Pass 'product' as a prop to 'Product'.
 5. Check the session and setup as usual. As in the last tutorial, 'next' has been updated such that in the code where we redirect to '/setup', we also need to return a null page (whereas before, we just continued on).
 6. The endpoint handler is 'api/edit'.
+
+## Create the Frontend
+
+1. Here we will focus on the single product page, and the list of products in the user profile. Those 2 are interlinked, from the profile you can navigate to a single product, and vice versa.
+2. Add a “View” link into the dashboard so we can see how products look in the frontend, e.g. what regular users see - the link will point to the URL '/product/<ID>'.
+3. Add the link to 'pages/dashboard/index.js'.
+4. Create the file 'pages/product/[id].js' for the new 'View' page. In this page we link to '/profile/<USER ID>' - so we also need to create the page '/pages/profile/[id].js'. This page shows the list of products sold by this user.
+5. The new profile page needs 'getUser' - add that to data.js. We could also refactor how products are returned in the Profile page - since getUser returns the list of products, getServerSideProps doesn't really need to call 'getProducts'. Then, when iterating over the products, you would use 'user.products' and 'user.products.map...'. Remove 'products' from the props returned from 'getServerSideProps' and as input into Profile....
