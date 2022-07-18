@@ -189,3 +189,8 @@ STRIPE_WEBHOOK_SECRET=whsec_SOMETHING
     4.  The main thing is that we're using the 'raw-body' module to pull the data from the response and that we get an event = 'check.session.completed' where we can pull out the session ID. That session ID is used to update the the data (e.g. paid).
     5.  Lastly we send a 'received' back to stripe to let them know we received the request.
     6.  And it works! From the video, enter a fake email (e.g. fake-email@gmail.com), fake credit card (e.g. 4242 4242 4242 4242), fake date (e.g. 3/44) - after clicking the purchase button, you are redirected back to the dashboard which shows your purchases.
+
+## Handle Already Purchased
+
+1. Add 'alreadyPurchased' to data.js. Note that this function uses 'findMany' since the data used in the 'where' clause are not marked as primary keys.
+2. In 'pages/product/[id].js', refactor 'getServerSideProps' to check whether the item has already been purchased.
