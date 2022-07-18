@@ -91,3 +91,101 @@ export async function getServerSideProps(context) {
 1. We will currently show the 'top' 3 items from the database. Once we put 'sales' in place, we will show the top 3 items sold.
 2. In 'index.js', we show the products as we did on the 'profile' page.
 3. Refactor 'getProducts' to accept a 'take' option.
+
+## Accept Payments
+
+1. We're using Stripe, and particular Stripe Payments. See the tutorial for rationale and potential problems.
+2. First, sign up for a Stripe account.
+3. From the tutorial, here's how the process works (edited):
+   1. When the user clicks the Purchase button on a product, we check if they are logged in.
+   2. We then create a checkout session server-side and provide a success URL that will be the URL where people are sent, on our site, after the payment was successful. This will be the URL '/purchases.
+   3. Then we redirect to the checkout on the Stripe server.
+   4. After the payment is made, Stripe redirects the user to the success URL and sends us a confirmation via a webhook. A webhook is a POST request made by Stripe to our API.
+   5. We’ll have an endpoint that receives this payment confirmation, and adds the purchase in the database.
+4. Start by installing the 'stripe' modules:
+
+```
+npm install stripe raw-body
+```
+
+5. Add the secret and key from the Stripe developer's console into the .env file.
+6. Since our site is running locally, we need to use the Stripe CLI in order to tell stripe how to connect to use.
+
+```
+brew install stripe/stripe-cli/stripe
+```
+
+7. From the terminal, login into Strip:
+
+```
+> strip login
+```
+
+This brings up a web page where you need to 'allow access'.
+
+8.  Once you've completed the above, from the terminal:
+
+```
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+This command will return a webhook signing secret code, which you’ll need to put in the '.env' file:
+
+```
+STRIPE_WEBHOOK_SECRET=whsec_SOMETHING
+```
+
+9.  In pages/product/[id].js, refactor to check the logged in user status as usual. Show 'Download' instead of 'Purchase' if the product is free. Also check whether the product is owned by the logged in user - in that case, we show that the user is the owner.
+10. Handle the Download button:
+
+    1.  Add an 'onClick' handler that will send a POST to '/api/download'.
+    2.  Add an endpoint handler for 'pages/api/download.js'.
+    3.  Flavio uses the following in 'download.js' - this generates an error for me:
+
+    ```
+    export default async (req, res) => {
+        ...
+    }
+    ```
+
+    This can be fixed with a change to eslintrc (although not clear what at this point), but it's better to do this anyway:
+
+    ```
+    const download = async (req, res) => {
+        ...
+    }
+    export default download;
+    ```
+
+    4. As part of the download, an entry is added to the Purchase table.
+    5. After the download is complete, the user is redirected back to the dashboard which shows the purchases and downloads made by the user. Along with this we need to add 'getPurchases' to data.js.
+    6. List the purchases and downloads in 'pages/dashboard/index.js' - add 'getPurchases' to data.js.
+    7. There's a couple of bugs here at this point - (1) in 'pages/product/[id].js', we use the router to push on the dashboard, but haven't yet imported the library or defined 'router'. (2) The tailwind in 'dashboard/index.js' uses the following in 2 places - the impact of this is that when the screen is as big as it can get on my mac, the buttons become messed up. If I remove the xl:w-1/3 it works fine. Also, it works fine if the screen is just a bit smaller - weird.
+
+    ```
+            <div
+                className="border flex justify-between w-full md:w-2/3 xl:w-1/3 mx-auto px-4 my-2 py-5 "
+                key={index}
+              >
+    ```
+
+    EDIT: Playing around again - can't seem to make it happen with the xl:w-1/3 put back in....hmmm.
+
+    8. It's a bit tricky to purchase something from another user - you need to logout and then login with another email. From the second email, post some products. Then, logout of the second email and then login with the first email. Right now, the last products added are shown first (with no way to list more) - so now, using the first email, you can 'download' a free product.
+
+11. Handle the Purchase button:
+    1.  In 'pages/product/[id].js', if the product is NOT free, send a POST request to '/api/stripe/session' with the details of the product to purchase.
+    2.  To handle the endpoint, create the file 'stripe/session.js'. Here we pass a success and cancel URL destination, so Stripe knows where to send us after the transaction (to our dashboard).
+        - Once the transaction is initialized, we store its session ID in the Purchase table, as unpaid, and finally we return to the client the Stripe session ID in sessionID - this is a bit muddled at the moment....
+        - I think what Flavio is trying to say is that we must capture the Stripe session ID so that later we can send the user to payment....
+    3.  In 'pages/product/[id].js', we need to add access to the stripe payment library in a 'script' tag. There's a note in the tutorial about using 'async' to prevent some next.js error.
+    4.  In the onClick handler for Purchase, after the session ID is stored and returned (in 'data'), use the Stripe frontend library with the Stripe session ID to redirect the person to Stripe checkout.
+        - Ran into a 500 error at this point since my account didn't have a "name" setup.
+        - I somehow had a Stripe account setup - not sure how, but there was no "name".
+12. Implement the webhook:
+    1.  Add a page for 'pages/api/stripe/webhook.js' - this is the URL we passed to Stripe in the CLI.
+    2.  This part isn't explained well, but essentially we're using the session ID given to us prior and upon success, set 'paid' to true and clear the session ID. Probably best to find another article on how this works.
+    3.  This code runs in the background....
+    4.  The main thing is that we're using the 'raw-body' module to pull the data from the response and that we get an event = 'check.session.completed' where we can pull out the session ID. That session ID is used to update the the data (e.g. paid).
+    5.  Lastly we send a 'received' back to stripe to let them know we received the request.
+    6.  And it works! From the video, enter a fake email (e.g. fake-email@gmail.com), fake credit card (e.g. 4242 4242 4242 4242), fake date (e.g. 3/44) - after clicking the purchase button, you are redirected back to the dashboard which shows your purchases.

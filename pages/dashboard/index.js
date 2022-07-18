@@ -5,11 +5,11 @@ import { useRouter } from "next/router";
 import { useSession, getSession } from "next-auth/react";
 
 import prisma from "lib/prisma";
-import { getProducts } from "lib/data";
+import { getProducts, getPurchases } from "lib/data";
 
 import Heading from "components/Heading";
 
-export default function Dashboard({ products }) {
+export default function Dashboard({ products, purchases }) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -45,45 +45,86 @@ export default function Dashboard({ products }) {
         </Link>
       </div>
       <div className="flex justify-center mt-10">
-        <div className="flex flex-col w-full ">
-          {products &&
-            products.map((product, index) => (
+        {products.length > 0 && (
+          <div className="flex flex-col w-full ">
+            <h2 className="text-center text-xl mb-4">Products</h2>
+
+            {products &&
+              products.map((product, index) => (
+                <div
+                  className="border flex justify-between w-full md:w-2/3 xl:w-1/3 mx-auto px-4 my-2 py-5 "
+                  key={index}
+                >
+                  {product.image && (
+                    <img
+                      src={product.image}
+                      className="w-14 h-14 flex-initial"
+                      alt={product.title}
+                    />
+                  )}
+                  <div className="flex-1 ml-3">
+                    <p>{product.title}</p>
+                    {product.free ? (
+                      <span className="bg-white text-black px-1 uppercase font-bold">
+                        free
+                      </span>
+                    ) : (
+                      <p>${product.price / 100}</p>
+                    )}
+                  </div>
+                  <div className="">
+                    <Link href={`/dashboard/product/${product.id}`}>
+                      <a className="text-sm border p-2 font-bold uppercase">
+                        Edit
+                      </a>
+                    </Link>
+                    <Link href={`/product/${product.id}`}>
+                      <a className="text-sm border p-2 font-bold uppercase ml-2">
+                        View
+                      </a>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+        {purchases.length > 0 && (
+          <div className="flex flex-col w-full">
+            <h2 className="text-center text-xl mb-4">Purchases</h2>
+            {purchases.map((purchase, index) => (
               <div
                 className="border flex justify-between w-full md:w-2/3 xl:w-1/3 mx-auto px-4 my-2 py-5 "
                 key={index}
               >
-                {product.image && (
+                {purchase.product.image && (
                   <img
-                    src={product.image}
+                    src={purchase.product.image}
                     className="w-14 h-14 flex-initial"
-                    alt={product.title}
+                    alt={purchase.product.title}
                   />
                 )}
                 <div className="flex-1 ml-3">
-                  <p>{product.title}</p>
-                  {product.free ? (
+                  <p>{purchase.product.title}</p>
+                  {parseInt(purchase.amount) === 0 ? (
                     <span className="bg-white text-black px-1 uppercase font-bold">
                       free
                     </span>
                   ) : (
-                    <p>${product.price / 100}</p>
+                    <p>${purchase.amount / 100}</p>
                   )}
                 </div>
                 <div className="">
-                  <Link href={`/dashboard/product/${product.id}`}>
-                    <a className="text-sm border p-2 font-bold uppercase">
-                      Edit
-                    </a>
-                  </Link>
-                  <Link href={`/product/${product.id}`}>
-                    <a className="text-sm border p-2 font-bold uppercase ml-2">
-                      View
-                    </a>
-                  </Link>
+                  <a
+                    href={purchase.product.url}
+                    className="text-sm border p-2 font-bold uppercase"
+                  >
+                    Get files
+                  </a>
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -100,9 +141,13 @@ export async function getServerSideProps(context) {
   let products = await getProducts({ author: session.user.id }, prisma);
   products = JSON.parse(JSON.stringify(products));
 
+  let purchases = await getPurchases({ author: session.user.id }, prisma);
+  purchases = JSON.parse(JSON.stringify(purchases));
+
   return {
     props: {
       products,
+      purchases,
     },
   };
 }
