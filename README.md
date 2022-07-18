@@ -194,3 +194,22 @@ STRIPE_WEBHOOK_SECRET=whsec_SOMETHING
 
 1. Add 'alreadyPurchased' to data.js. Note that this function uses 'findMany' since the data used in the 'where' clause are not marked as primary keys.
 2. In 'pages/product/[id].js', refactor 'getServerSideProps' to check whether the item has already been purchased.
+
+## List Sold Items
+
+1. In 'Heading.js', include links for products and items sold.
+2. Create a new page to handle the list of sold items - the sales link points to' /dashboard/sales', so add a new page' pages/dashboard/sales.js'.
+3. Add 'getSales()' to data.js.
+4. Totals earned are calculated in 'sales.js' using the following construct:
+
+```
+{sales.reduce((accumulator, sale) => {
+  return accumulator + parseFloat(sale.amount)
+}, 0)}
+```
+
+5. Add the number of sales to each product in the dashboard:
+   1. Add a check in 'getProducts' in data.js to return the number of purchases of a given product.
+   2. In 'pages/dashboard/index.js' add a new parameter to the call to 'getProducts' on 'getServerSideProps' - includePurchases.
+   3. In 'dashboard/index.js', update the JSX to include the number of purchases if there are any.
+   4. Since we have a link to create a new product, we no longer need the "create product" button - Flavio has it removed in one image, but has it included both in the video and in github.

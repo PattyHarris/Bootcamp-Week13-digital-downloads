@@ -74,7 +74,7 @@ model Product {
   createdAt   DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId    String
-  purchaes    Purchase[]
+  purchases    Purchase[]
 }
 
 model Purchase {

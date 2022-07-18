@@ -40,11 +40,6 @@ export default function Dashboard({ products, purchases }) {
       <h1 className="flex justify-center mt-20 text-xl">Dashboard</h1>
 
       <div className="flex justify-center mt-10">
-        <Link href={`/dashboard/new`}>
-          <a className="text-xl border p-2">Create a new product</a>
-        </Link>
-      </div>
-      <div className="flex justify-center mt-10">
         {products.length > 0 && (
           <div className="flex flex-col w-full ">
             <h2 className="text-center text-xl mb-4">Products</h2>
@@ -73,16 +68,23 @@ export default function Dashboard({ products, purchases }) {
                     )}
                   </div>
                   <div className="">
-                    <Link href={`/dashboard/product/${product.id}`}>
-                      <a className="text-sm border p-2 font-bold uppercase">
-                        Edit
-                      </a>
-                    </Link>
-                    <Link href={`/product/${product.id}`}>
-                      <a className="text-sm border p-2 font-bold uppercase ml-2">
-                        View
-                      </a>
-                    </Link>
+                    <div className="">
+                      <Link href={`/dashboard/product/${product.id}`}>
+                        <a className="text-sm border p-2 font-bold uppercase">
+                          Edit
+                        </a>
+                      </Link>
+                      <Link href={`/product/${product.id}`}>
+                        <a className="text-sm border p-2 font-bold uppercase ml-2">
+                          View
+                        </a>
+                      </Link>
+                    </div>
+                    {product.purchases && product.purchases.length > 0 && (
+                      <p className="mt-3 text-right">
+                        {product.purchases.length} sales
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -138,7 +140,10 @@ export async function getServerSideProps(context) {
     };
   }
 
-  let products = await getProducts({ author: session.user.id }, prisma);
+  let products = await getProducts(
+    { author: session.user.id, includePurchases: true },
+    prisma
+  );
   products = JSON.parse(JSON.stringify(products));
 
   let purchases = await getPurchases({ author: session.user.id }, prisma);
